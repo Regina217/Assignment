@@ -32,6 +32,7 @@ public class Player extends  Application{
             primaryStage.show();
             ReadServerThread read=new ReadServerThread();
             read.start();
+            primaryStage.setOnCloseRequest(windowEvent -> {System.exit(0);});
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,9 +86,12 @@ public class Player extends  Application{
                         if (s.equals("Lose")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You lose!"));Platform.runLater(()->primaryStage.close());send("Bye");}
                         if (s.equals("Tie")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"Tie!"));Platform.runLater(()->primaryStage.close());send("Bye");}
                         if (s.equals("Bye")){socket.close();socket.close();this.stop();}
+                        if (s.equals("Lost")){Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display("Error","Your opponent lost connection."));}
                     }}
-                }catch (Exception e) {
-                        e.printStackTrace();
+                }
+                catch (Exception e) {
+                    System.out.println("Lost server");
+                    {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display("Error","Your server lost connection."));}
                     }
                 }
             }

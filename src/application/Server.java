@@ -3,6 +3,7 @@ package application;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -49,7 +50,7 @@ public class Server  {
            System.out.println("服务器告诉玩家"+socket.toString()+s);
            writer.flush();
        } catch (IOException e) {
-           e.printStackTrace();
+           System.out.println("A player lost connection");
        }
     }
 
@@ -106,25 +107,23 @@ public class Server  {
                         if (message2.equals("Bye")){
                             send(player1,"Bye");player1.close();
                             send(player2,"Bye");player2.close();}}}}
-//                catch (EOFException e){
-//                }
                 catch (Exception e) {
-                    this.stop();
-                    e.printStackTrace();
-                }
-            }
+                    System.out.println("SocketException");
+
+                    try {
+                        if(player1.isConnected()){send(player1,"Lost");}
+                    } catch (Exception ex) {
+                        System.out.println("Player1 lost connection.");
+                    }
+                    try {
+                        if(player2.isConnected()){send(player2,"Lost");}
+                    } catch (Exception ex) {
+                        System.out.println("Player2 lost connection.");
+                    }
+                    this.stop();}
+
         }
-   // state:
-    // 1 Please wait your opponent... 2 successfully match!
-
-    //wait for new players
-    //match
-    //no match then inform
-
-    //track and inform lose or win
-
-//  计数器记录奇偶来通知等待和匹配or队列
-//  不停地访问输赢状态
+        }
 public static void main(String[] args) {
   Server server=new Server();
 }
