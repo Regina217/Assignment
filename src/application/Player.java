@@ -66,25 +66,25 @@ public class Player extends  Application{
                     reader= new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     while (true){
                 while ((s=reader.readLine())!=null) {
+                    System.out.println("others action: "+s);
                         if(s.equals("Match")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"Match successfully!"));};
                         if(s.equals("Wait")) {Platform.runLater(() -> new Message(Alert.AlertType.INFORMATION).display(s, "Please wait for another player!"));}
-                        if (s.equals("1")) {turn=1;nowTurn=1;}
-                        if (s.equals("2")) {turn=2;nowTurn=1;}
-                        if (s.equals("Turn")){if (nowTurn==1) nowTurn=2;else nowTurn=1;}
-                        if(s.equals("0,0")){setChessBoard(0,0,nowTurn);}
-                        if(s.equals("0,1")){setChessBoard(0,1,nowTurn);}
-                        if(s.equals("0,2")){setChessBoard(0,2,nowTurn);}
-                        if(s.equals("1,0")){setChessBoard(1,0,nowTurn);}
-                        if(s.equals("1,1")){setChessBoard(1,1,nowTurn);}
-                        if(s.equals("1,2")){setChessBoard(1,2,nowTurn);}
-                        if(s.equals("2,0")){setChessBoard(2,0,nowTurn);}
-                        if(s.equals("2,1")){setChessBoard(2,1,nowTurn);}
-                        if(s.equals("2,2")){setChessBoard(2,2,nowTurn);}
-                        if (s.equals("Win")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You win!"));primaryStage.close();}
-                        if (s.equals("Lose")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You lose!"));primaryStage.close();}
-                        if (s.equals("Tie")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"Tie!"));primaryStage.close();}
-                        Platform.runLater(()->controller.init(Player.this));
-                        System.out.println("others action: "+s);
+                        if (s.equals("1")) {turn=1;nowTurn=1;Platform.runLater(()->controller.init(Player.this));}
+                        if (s.equals("2")) {turn=2;nowTurn=1;Platform.runLater(()->controller.init(Player.this));}
+                        if (s.equals("Turn")){if (nowTurn==1) nowTurn=2;else nowTurn=1;Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("0,0")){setChessBoard(0,0,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("0,1")){setChessBoard(0,1,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("0,2")){setChessBoard(0,2,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("1,0")){setChessBoard(1,0,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("1,1")){setChessBoard(1,1,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("1,2")){setChessBoard(1,2,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("2,0")){setChessBoard(2,0,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("2,1")){setChessBoard(2,1,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if(s.equals("2,2")){setChessBoard(2,2,nowTurn);Platform.runLater(()->controller.init(Player.this));}
+                        if (s.equals("Win")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You win!"));Platform.runLater(()->primaryStage.close());send("Bye");}
+                        if (s.equals("Lose")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You lose!"));Platform.runLater(()->primaryStage.close());send("Bye");}
+                        if (s.equals("Tie")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"Tie!"));Platform.runLater(()->primaryStage.close());send("Bye");}
+                        if (s.equals("Bye")){socket.close();socket.close();this.stop();}
                     }}
                 }catch (Exception e) {
                         e.printStackTrace();

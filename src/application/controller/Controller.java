@@ -48,7 +48,6 @@ public class Controller implements Initializable {
                     TURN = !TURN;
                 }});
             if(checkGameEnding()){
-                player.send("End");
                 player.send(getGameEnder()+"win");
             }
         }
