@@ -4,6 +4,7 @@ import application.Message;
 import application.Player;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -26,58 +27,55 @@ public class Controller implements Initializable {
     private Rectangle game_panel;
     private static boolean TURN = false;
 
-    private static final int[][] chessBoard = new int[3][3];
+    private static int[][] chessBoard = new int[3][3];
     private static final boolean[][] flag = new boolean[3][3];
 
-    public Controller() {
-        System.out.println("controller");
-    }
-
-    public Controller(Player player) {
-        System.out.println("player con");
-        this.player = player;
-        System.out.println(player);
-    }
+    public Controller() {}
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        if (player == null) return;
-        System.out.println(player.getTurn());
-        System.out.println(player.getNowTurn());
     }
 
     public void init(Player p) {
         this.player= p;
-        if (player.getTurn() == player.getNowTurn()) {
+        drawChess();
+        if(player.getTurn()==-1){game_panel.setOnMouseClicked(e-> new Message(Alert.AlertType.INFORMATION).display("Invalid operation","Please wait for another player!"));}
+        else if (player.getTurn() == player.getNowTurn()) {
             game_panel.setOnMouseClicked(event -> {
                 int x = (int) (event.getX() / BOUND);
                 int y = (int) (event.getY() / BOUND);
                 if (refreshBoard(x, y)) {
                     TURN = !TURN;
-                }
-            });
+                }});
+            if(checkGameEnding()){
+                player.send("End");
+                player.send(getGameEnder()+"win");
+            }
         }
-        else game_panel.setOnMouseClicked(e-> new Message("Invalid operation","It is NOT your turn! Please wait."));
+        else game_panel.setOnMouseClicked(e-> new Message(Alert.AlertType.INFORMATION).display("Invalid operation","It is NOT your turn! Please wait."));
     }
 
-    private boolean refreshBoard (int x, int y) {
+    public boolean refreshBoard (int x, int y) {
         if (chessBoard[x][y] == EMPTY) {
             chessBoard[x][y] = TURN ? PLAY_1 : PLAY_2;
+            player.setChessBoard(x,y, player.getNowTurn());
             drawChess();
             player.send(x+","+y);
+            System.out.println("I am playing "+x+","+y);
             return true;
         }
         return false;
     }
 
     private void drawChess () {
-        System.out.println("chess");
+        System.out.println("drawChess");
         for (int i = 0; i < chessBoard.length; i++) {
             for (int j = 0; j < chessBoard[0].length; j++) {
                 if (flag[i][j]) {
-                    // This square has been drawing, ignore.
+//                     This square has been drawing, ignore.
                     continue;
                 }
+                chessBoard[i][j]=player.getChessBoard()[i][j];
                 switch (chessBoard[i][j]) {
                     case PLAY_1:
                         drawCircle(i, j);
@@ -96,7 +94,6 @@ public class Controller implements Initializable {
     }
 
     private void drawCircle (int i, int j) {
-        System.out.println(i+ " " + j);
         Circle circle = new Circle();
         base_square.getChildren().add(circle);
         circle.setCenterX(i * BOUND + BOUND / 2.0 + OFFSET);
@@ -126,9 +123,11 @@ public class Controller implements Initializable {
         flag[i][j] = true;
     }
 
+
     public boolean player1Win(){
         for (int i = 0; i < 3; i++) {
             if(chessBoard[i][0]==1&&chessBoard[i][1]==1&&chessBoard[i][2]==1) return true;
+            if(chessBoard[0][i]==1&&chessBoard[1][i]==1&&chessBoard[2][i]==1) return true;
         }
         if(chessBoard[1][1]==1&&chessBoard[2][2]==1&&chessBoard[0][0]==1) return true;
         if(chessBoard[0][2]==1&&chessBoard[1][1]==1&&chessBoard[2][0]==1) return true;
@@ -137,7 +136,7 @@ public class Controller implements Initializable {
     public boolean player2Win(){
         for (int i = 0; i < 3; i++) {
             if(chessBoard[i][0]==2&&chessBoard[i][1]==2&&chessBoard[i][2]==2) return true;
-        }
+            if(chessBoard[0][i]==1&&chessBoard[1][i]==1&&chessBoard[2][i]==1) return true;}
         if(chessBoard[1][1]==2&&chessBoard[2][2]==2&&chessBoard[0][0]==2) return true;
         if(chessBoard[0][2]==2&&chessBoard[1][1]==2&&chessBoard[2][0]==2) return true;
         return false;
@@ -158,7 +157,4 @@ public class Controller implements Initializable {
         return true;
     }
 
-    public void setPlayer(Player player) {
-        this.player = player;
-    }
 }

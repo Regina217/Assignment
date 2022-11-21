@@ -2,103 +2,123 @@ package application;
 
 import application.controller.Controller;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-
 import java.io.*;
 import java.net.Socket;
 
 public class Player extends  Application{
     Socket socket;
-    int number;
-    boolean turn;
-    boolean nowTurn;
+    int turn=-1;
+    int nowTurn=0;
     Controller controller;
-    boolean[][] flag = new boolean[3][3];
+    int[][] chessBoard = new int[3][3];
 
-    public Player(){
+    OutputStream os;
+    Stage primaryStage;
+    Pane root;
+
+    @Override
+    public void start(Stage primaryStage){
         try {
-            socket=new Socket("localhost",7503);
-            System.out.println("客户端建立");
+            this.primaryStage=primaryStage;
+            primaryStage.setTitle("Tic Tac Toe");
+            primaryStage.setScene(new Scene(root));
+            primaryStage.setResizable(false);
+            primaryStage.show();
             ReadServerThread read=new ReadServerThread();
             read.start();
-//            controller=new Controller(this);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void start(Stage primaryStage) {
+    public void init() {
         try {
+            socket=new Socket("localhost",7503);
+            System.out.println("客户端建立");
             FXMLLoader fxmlLoader = new FXMLLoader();
             fxmlLoader.setLocation(getClass().getClassLoader().getResource("mainUI.fxml"));
-            Pane root = fxmlLoader.load();
-            Controller controller = fxmlLoader.getController();
+            root = fxmlLoader.load();
+            controller = fxmlLoader.getController();
             controller.init(this);
-            primaryStage.setTitle("Tic Tac Toe");
-            primaryStage.setScene(new Scene(root));
-            primaryStage.setResizable(false);
-            primaryStage.show();
+            System.out.println("controllerInit");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     class ReadServerThread extends Thread{
-        InputStream is;
+        BufferedReader reader ;
+        String s;
+        ReadServerThread() throws IOException {}
         @Override
         public void run() {
             super.run();
             {
-                while (true) {
-                    try {
-                        is = socket.getInputStream();
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                        String s=reader.readLine();
-                        if(s.equals("Match")) new Message(s,"Match successfully!");
-                        if(s.equals("Wait")) new Message(s,"Please wait for another player!");
-                        if (s.equals("1")) {number=1;turn=true;nowTurn=true;}
-                        if (s.equals("2")) {number=2;turn=false;nowTurn=true;}
-                        if (s.equals("turn")) nowTurn=!nowTurn;
-                    } catch (IOException e) {
+                System.out.println("readThread run");
+                try {
+                    reader= new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    while (true){
+                while ((s=reader.readLine())!=null) {
+                        if(s.equals("Match")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"Match successfully!"));};
+                        if(s.equals("Wait")) {Platform.runLater(() -> new Message(Alert.AlertType.INFORMATION).display(s, "Please wait for another player!"));}
+                        if (s.equals("1")) {turn=1;nowTurn=1;}
+                        if (s.equals("2")) {turn=2;nowTurn=1;}
+                        if (s.equals("Turn")){if (nowTurn==1) nowTurn=2;else nowTurn=1;}
+                        if(s.equals("0,0")){setChessBoard(0,0,nowTurn);}
+                        if(s.equals("0,1")){setChessBoard(0,1,nowTurn);}
+                        if(s.equals("0,2")){setChessBoard(0,2,nowTurn);}
+                        if(s.equals("1,0")){setChessBoard(1,0,nowTurn);}
+                        if(s.equals("1,1")){setChessBoard(1,1,nowTurn);}
+                        if(s.equals("1,2")){setChessBoard(1,2,nowTurn);}
+                        if(s.equals("2,0")){setChessBoard(2,0,nowTurn);}
+                        if(s.equals("2,1")){setChessBoard(2,1,nowTurn);}
+                        if(s.equals("2,2")){setChessBoard(2,2,nowTurn);}
+                        if (s.equals("Win")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You win!"));primaryStage.close();}
+                        if (s.equals("Lose")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"You lose!"));primaryStage.close();}
+                        if (s.equals("Tie")) {Platform.runLater(()->new Message(Alert.AlertType.INFORMATION).display(s,"Tie!"));primaryStage.close();}
+                        Platform.runLater(()->controller.init(Player.this));
+                        System.out.println("others action: "+s);
+                    }}
+                }catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
             }
         }
-    }
+
     public void send(String s){
         try {
-            OutputStream os=socket.getOutputStream();
+            os=socket.getOutputStream();
             BufferedWriter writer=new BufferedWriter(new OutputStreamWriter(os));
             writer.write(s+"\n");
+            System.out.println("I send sever: "+s);
+            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public Socket getSocket() {
-        return socket;
+
+    public int[][] getChessBoard() {
+        return chessBoard;
+    }
+    public void setChessBoard(int x,int y,int turn){
+        chessBoard[x][y]=turn;
     }
 
-    public boolean[][] getFlag() {
-        return flag;
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public boolean getTurn() {
+    public int getTurn() {
         return turn;
     }
 
-    public boolean getNowTurn() {
+    public int getNowTurn() {
         return nowTurn;
     }
-
     //connect
     //GUI
   //play
